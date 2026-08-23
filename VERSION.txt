@@ -1,0 +1,8 @@
+Mx310_Evgenium_scanner
+Version: 1.0.4
+Date: 2026-08-23
+Platform: Windows 11 ARM64
+Device: Canon PIXMA MX310, USB scanner interface MI_00
+Transport: Microsoft WinUSB + libusb 1.0.30
+Modes: flatbed, color PNG, A4, 75/150/300 dpi
+
