@@ -1,0 +1,100 @@
+; MX310_series_(Interface_0).inf
+; Copyright (c) 2010-2023 Pete Batard <pete@akeo.ie> (GNU LGPL)
+[Strings]
+DeviceName = "MX310 series (Interface 0)"
+VendorName = "Canon, Inc."
+SourceName = "MX310 series (Interface 0) Install Disk"
+DeviceID   = "VID_04A9&PID_1728&MI_00"
+DeviceGUID = "{B1ED1CC4-CA51-48D4-8408-FCFF3DE8C491}"
+
+[Version]
+Signature   = "$Windows NT$"
+Class       = "USBDevice"
+ClassGuid   = {88bae032-5a81-49f0-bc3d-a4ff138216d6}
+Provider    = "libwdi"
+CatalogFile = MX310_series_(Interface_0).cat
+DriverVer   = 06/02/2012, 6.1.7600.16385
+
+[ClassInstall32]
+Addreg = WinUSBDeviceClassReg
+
+[WinUSBDeviceClassReg]
+HKR,,,0,"Universal Serial Bus devices"
+HKR,,Icon,,-20
+
+[Manufacturer]
+%VendorName% = libusbDevice_WinUSB,NTx86,NTamd64,NTarm64
+
+[libusbDevice_WinUSB.NTx86]
+%DeviceName% = USB_Install, USB\%DeviceID%
+
+[libusbDevice_WinUSB.NTamd64]
+%DeviceName% = USB_Install, USB\%DeviceID%
+
+[libusbDevice_WinUSB.NTarm64]
+%DeviceName% = USB_Install, USB\%DeviceID%
+
+[USB_Install]
+Include = winusb.inf
+Needs   = WINUSB.NT
+
+[USB_Install.Services]
+Include    = winusb.inf
+AddService = WinUSB,0x00000002,WinUSB_ServiceInstall
+
+[WinUSB_ServiceInstall]
+DisplayName   = "WinUSB - Kernel Driver 06/02/2012 6.1.7600.16385"
+ServiceType   = 1
+StartType     = 3
+ErrorControl  = 1
+ServiceBinary = %12%\WinUSB.sys
+
+[USB_Install.Wdf]
+KmdfService = WINUSB, WinUsb_Install
+
+[WinUSB_Install]
+KmdfLibraryVersion = 1.11
+
+[USB_Install.HW]
+AddReg = AddDeviceInterfaceGUID
+
+[NoDeviceInterfaceGUID]
+; Avoids adding a DeviceInterfaceGUID for generic driver
+
+[AddDeviceInterfaceGUID]
+HKR,,DeviceInterfaceGUIDs,0x10000,%DeviceGUID%
+
+[USB_Install.NTx86.CoInstallers]
+AddReg    = CoInstallers_AddReg
+CopyFiles = CoInstallers_CopyFiles
+
+[USB_Install.NTamd64.CoInstallers]
+AddReg    = CoInstallers_AddReg
+CopyFiles = CoInstallers_CopyFiles
+
+[USB_Install.NTarm64.CoInstallers]
+;
+
+[CoInstallers_AddReg]
+HKR,,CoInstallers32,0x00010000,"WdfCoInstaller01011.dll,WdfCoInstaller","WinUSBCoInstaller2.dll"
+
+[CoInstallers_CopyFiles]
+WinUSBCoInstaller2.dll
+WdfCoInstaller01011.dll
+
+[DestinationDirs]
+CoInstallers_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %SourceName%
+
+[SourceDisksFiles.x86]
+WinUSBCoInstaller2.dll = 1,x86
+WdfCoInstaller01011.dll = 1,x86
+
+[SourceDisksFiles.amd64]
+WinUSBCoInstaller2.dll = 1,amd64
+WdfCoInstaller01011.dll = 1,amd64
+
+[SourceDisksFiles.arm64]
+;
