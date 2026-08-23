@@ -82,4 +82,3 @@ catch {
 }
 $log | Set-Content $ReportPath -Encoding UTF8
 exit 0
-

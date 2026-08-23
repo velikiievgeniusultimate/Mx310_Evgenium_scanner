@@ -34,4 +34,3 @@ internal static class DebugUninstaller
     private static int Run(string script,string args){var p=Process.Start(new ProcessStartInfo("powershell.exe","-NoProfile -ExecutionPolicy Bypass -File \""+script+"\" "+args){UseShellExecute=false});p.WaitForExit();return p.ExitCode;}
     private static bool IsAdministrator(){return new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);}
 }
-

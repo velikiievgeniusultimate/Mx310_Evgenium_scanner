@@ -33,4 +33,3 @@ Source: https://aka.ms/vs/17/release/vc_redist.arm64.exe
 
 This test package is provided without warranty. The complete source of the
 MX310 Windows user-mode application is included in the src directory.
-

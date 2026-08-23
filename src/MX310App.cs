@@ -32,7 +32,7 @@ namespace MX310Native
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Canon MX310 ARM64 â€” Ð¾ÑˆÐ¸Ð±ÐºÐ°", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), "Canon MX310 ARM64 — ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 1;
             }
         }
@@ -84,7 +84,7 @@ namespace MX310Native
 
         public MainForm()
         {
-            Text = "Canon MX310 â€” Ð½Ð°Ñ‚Ð¸Ð²Ð½Ð¾Ðµ ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ ARM64";
+            Text = "Canon MX310 — нативное сканирование ARM64";
             StartPosition = FormStartPosition.CenterScreen;
             ClientSize = new Size(560, 285);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -98,28 +98,28 @@ namespace MX310Native
             Controls.Add(title);
 
             Label transport = new Label();
-            transport.Text = "Windows 11 ARM64 â€¢ WinUSB â€¢ Ð½Ð°Ñ‚Ð¸Ð²Ð½Ñ‹Ð¹ Ð¿Ñ€Ð¾Ñ‚Ð¾ÐºÐ¾Ð» PIXMA generation 3";
+            transport.Text = "Windows 11 ARM64 • WinUSB • нативный протокол PIXMA generation 3";
             transport.AutoSize = true;
             transport.ForeColor = Color.DimGray;
             transport.Location = new Point(27, 55);
             Controls.Add(transport);
 
             Label dpiLabel = new Label();
-            dpiLabel.Text = "Ð Ð°Ð·Ñ€ÐµÑˆÐµÐ½Ð¸Ðµ:";
+            dpiLabel.Text = "Разрешение:";
             dpiLabel.AutoSize = true;
             dpiLabel.Location = new Point(27, 96);
             Controls.Add(dpiLabel);
 
             resolution = new ComboBox();
             resolution.DropDownStyle = ComboBoxStyle.DropDownList;
-            resolution.Items.AddRange(new object[] { "75 dpi â€” Ñ‡ÐµÑ€Ð½Ð¾Ð²Ð¸Ðº", "150 dpi â€” Ð±Ñ‹ÑÑ‚Ñ€Ð¾", "300 dpi â€” Ð´Ð¾ÐºÑƒÐ¼ÐµÐ½Ñ‚" });
+            resolution.Items.AddRange(new object[] { "75 dpi — черновик", "150 dpi — быстро", "300 dpi — документ" });
             resolution.SelectedIndex = 2;
             resolution.Location = new Point(130, 92);
             resolution.Width = 205;
             Controls.Add(resolution);
 
             scanButton = new Button();
-            scanButton.Text = "Ð¡ÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ ÑÐ¾ ÑÑ‚ÐµÐºÐ»Ð°";
+            scanButton.Text = "Сканировать со стекла";
             scanButton.Location = new Point(355, 90);
             scanButton.Size = new Size(175, 30);
             scanButton.Click += ScanClicked;
@@ -133,20 +133,20 @@ namespace MX310Native
             Controls.Add(progress);
 
             status = new Label();
-            status.Text = "ÐŸÐ¾Ð»Ð¾Ð¶Ð¸Ñ‚Ðµ Ð´Ð¾ÐºÑƒÐ¼ÐµÐ½Ñ‚ Ð½Ð° ÑÑ‚ÐµÐºÐ»Ð¾ Ð¸ Ð½Ð°Ð¶Ð¼Ð¸Ñ‚Ðµ Â«Ð¡ÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒÂ».";
+            status.Text = "Положите документ на стекло и нажмите «Сканировать».";
             status.Location = new Point(27, 177);
             status.Size = new Size(500, 40);
             Controls.Add(status);
 
             folderButton = new Button();
-            folderButton.Text = "ÐžÑ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ð¿Ð°Ð¿ÐºÑƒ ÑÐºÐ°Ð½Ð¾Ð²";
+            folderButton.Text = "Открыть папку сканов";
             folderButton.Location = new Point(30, 228);
             folderButton.Size = new Size(175, 30);
             folderButton.Click += OpenFolder;
             Controls.Add(folderButton);
 
             Label note = new Label();
-            note.Text = "Mx310_Evgenium_scanner â€¢ Ñ†Ð²ÐµÑ‚Ð½Ð¾Ð¹ PNG â€¢ A4";
+            note.Text = "Mx310_Evgenium_scanner • цветной PNG • A4";
             note.AutoSize = true;
             note.ForeColor = Color.DimGray;
             note.Location = new Point(340, 236);
@@ -201,17 +201,17 @@ namespace MX310Native
                 });
 
                 lastOutput = result;
-                status.Text = "Ð“Ð¾Ñ‚Ð¾Ð²Ð¾: " + result;
+                status.Text = "Готово: " + result;
                 progress.Value = 100;
                 Process.Start("explorer.exe", "/select,\"" + result + "\"");
-                MessageBox.Show("Ð¡ÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð¾.\r\n\r\n" + result,
+                MessageBox.Show("Сканирование завершено.\r\n\r\n" + result,
                     "Canon MX310", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                status.Text = "ÐžÑˆÐ¸Ð±ÐºÐ°. ÐžÐºÐ½Ð¾ Ð¾ÑÑ‚Ð°Ð²Ð»ÐµÐ½Ð¾ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚Ñ‹Ð¼; Ð¿Ð¾Ð´Ñ€Ð¾Ð±Ð½Ð¾ÑÑ‚Ð¸ Ð·Ð°Ð¿Ð¸ÑÐ°Ð½Ñ‹ Ð² Ð¶ÑƒÑ€Ð½Ð°Ð».";
-                MessageBox.Show(ex.ToString() + (logPath == null ? "" : "\r\n\r\nÐ–ÑƒÑ€Ð½Ð°Ð»: " + logPath),
-                    "Canon MX310 ARM64 â€” Ð¾ÑˆÐ¸Ð±ÐºÐ° ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                status.Text = "Ошибка. Окно оставлено открытым; подробности записаны в журнал.";
+                MessageBox.Show(ex.ToString() + (logPath == null ? "" : "\r\n\r\nЖурнал: " + logPath),
+                    "Canon MX310 ARM64 — ошибка сканирования", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -231,4 +231,3 @@ namespace MX310Native
         }
     }
 }
-

@@ -37,7 +37,7 @@ internal static class Bootstrapper
             }
 
             if (!IsArm64Windows())
-                throw new InvalidOperationException("Ð­Ñ‚Ð¾Ñ‚ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ñ‰Ð¸Ðº Ð¿Ñ€ÐµÐ´Ð½Ð°Ð·Ð½Ð°Ñ‡ÐµÐ½ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ Windows 11 ARM64.");
+                throw new InvalidOperationException("Этот установщик предназначен только для Windows 11 ARM64.");
 
             string payloadRoot = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
@@ -47,14 +47,14 @@ internal static class Bootstrapper
 
             using (Stream resource = Assembly.GetExecutingAssembly().GetManifestResourceStream("payload.zip"))
             {
-                if (resource == null) throw new InvalidDataException("Ð’ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ñ‰Ð¸ÐºÐµ Ð¾Ñ‚ÑÑƒÑ‚ÑÑ‚Ð²ÑƒÐµÑ‚ payload.zip.");
+                if (resource == null) throw new InvalidDataException("В установщике отсутствует payload.zip.");
                 using (ZipArchive archive = new ZipArchive(resource, ZipArchiveMode.Read))
                 {
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
                         string destination = Path.GetFullPath(Path.Combine(payloadRoot, entry.FullName));
                         if (!destination.StartsWith(payloadRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                            throw new InvalidDataException("ÐÐµÐ´Ð¾Ð¿ÑƒÑÑ‚Ð¸Ð¼Ñ‹Ð¹ Ð¿ÑƒÑ‚ÑŒ Ð² ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ñ‰Ð¸ÐºÐµ: " + entry.FullName);
+                            throw new InvalidDataException("Недопустимый путь в установщике: " + entry.FullName);
                         if (string.IsNullOrEmpty(entry.Name)) { Directory.CreateDirectory(destination); continue; }
                         Directory.CreateDirectory(Path.GetDirectoryName(destination));
                         entry.ExtractToFile(destination, true);
@@ -72,7 +72,7 @@ internal static class Bootstrapper
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Mx310_Evgenium_scanner â€” Ð¾ÑˆÐ¸Ð±ÐºÐ° ÑƒÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ¸", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(ex.Message, "Mx310_Evgenium_scanner — ошибка установки", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }
@@ -119,4 +119,3 @@ internal static class Bootstrapper
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool IsWow64Process2(IntPtr process, out ushort processMachine, out ushort nativeMachine);
 }
-

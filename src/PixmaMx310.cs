@@ -43,7 +43,7 @@ namespace MX310Native
         public string ScanFlatbed(int dpi, string outputPath)
         {
             if (dpi != 75 && dpi != 150 && dpi != 300)
-                throw new ArgumentOutOfRangeException("dpi", "ÐŸÐ¾Ð´Ð´ÐµÑ€Ð¶Ð¸Ð²Ð°ÑŽÑ‚ÑÑ 75, 150 Ð¸ 300 dpi.");
+                throw new ArgumentOutOfRangeException("dpi", "Поддерживаются 75, 150 и 300 dpi.");
 
             int width = 2480 * dpi / 300;
             int height = 3508 * dpi / 300;
@@ -56,29 +56,29 @@ namespace MX310Native
             int lastFlags = 0;
             try
             {
-                progress("ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ° ÑÐ¾ÑÑ‚Ð¾ÑÐ½Ð¸Ñ MX310...", 2);
+                progress("Проверка состояния MX310...", 2);
                 usb.DrainInterrupts();
                 byte[] oldStatus = Execute(CmdStatus, 0, 16, null);
                 log("Initial status: " + Hex(oldStatus, 8, 16));
 
-                progress("Ð—Ð°Ð¿ÑƒÑÐº ÑÐµÑÑÐ¸Ð¸...", 5);
+                progress("Запуск сессии...", 5);
                 StartSessionWithRetry();
                 sessionStarted = true;
 
                 for (int i = 0; i < 3; i++)
                 {
-                    progress("ÐŸÐµÑ€ÐµÐ´Ð°Ñ‡Ð° Ð³Ð°Ð¼Ð¼Ð°-Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ " + (i + 1) + "/3...", 8 + i * 3);
+                    progress("Передача гамма-таблицы " + (i + 1) + "/3...", 8 + i * 3);
                     SendGammaTable(2.2);
                 }
 
-                progress("ÐŸÐµÑ€ÐµÐ´Ð°Ñ‡Ð° Ð¿Ð°Ñ€Ð°Ð¼ÐµÑ‚Ñ€Ð¾Ð² ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ...", 18);
+                progress("Передача параметров сканирования...", 18);
                 SendScanParameters(dpi, rawWidth, height);
                 Execute(CmdScanStart3, 0, 0, null);
 
                 WaitUntilReady();
                 Thread.Sleep(1000);
 
-                progress("ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ...", 25);
+                progress("Получение изображения...", 25);
                 int expectedBytes = rawLineSize * height;
                 int blockNumber = 0;
                 do
@@ -89,25 +89,25 @@ namespace MX310Native
                         raw.Write(block.Data, 0, block.Data.Length);
                     blockNumber++;
                     int percent = 25 + (int)Math.Min(65L, raw.Length * 65L / Math.Max(1, expectedBytes));
-                    progress(string.Format("ÐŸÐ¾Ð»ÑƒÑ‡ÐµÐ½Ð¸Ðµ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ: {0:N1} ÐœÐ‘", raw.Length / 1048576.0), percent);
+                    progress(string.Format("Получение изображения: {0:N1} МБ", raw.Length / 1048576.0), percent);
                     log(string.Format("Image block {0}: flags=0x{1:X2}, bytes={2}, total={3}",
                         blockNumber, block.Flags, block.Data.Length, raw.Length));
                 }
                 while ((lastFlags & 0x28) != 0x28);
 
-                progress("ÐŸÑ€ÐµÐ¾Ð±Ñ€Ð°Ð·Ð¾Ð²Ð°Ð½Ð¸Ðµ RGB Ð² PNG...", 92);
+                progress("Преобразование RGB в PNG...", 92);
                 byte[] rawBytes = raw.ToArray();
                 int receivedLines = rawBytes.Length / rawLineSize;
                 int outputHeight = Math.Min(height, receivedLines);
                 int remainder = rawBytes.Length % rawLineSize;
                 log(string.Format("Raw complete: bytes={0}, lines={1}, remainder={2}", rawBytes.Length, receivedLines, remainder));
                 if (outputHeight <= 0)
-                    throw new InvalidDataException("Ð¡ÐºÐ°Ð½ÐµÑ€ Ð½Ðµ Ð²ÐµÑ€Ð½ÑƒÐ» Ð½Ð¸ Ð¾Ð´Ð½Ð¾Ð¹ Ð¿Ð¾Ð»Ð½Ð¾Ð¹ ÑÑ‚Ñ€Ð¾ÐºÐ¸ Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ.");
+                    throw new InvalidDataException("Сканер не вернул ни одной полной строки изображения.");
                 if (receivedLines < height)
-                    log(string.Format("ÐŸÑ€ÐµÐ´ÑƒÐ¿Ñ€ÐµÐ¶Ð´ÐµÐ½Ð¸Ðµ: Ð¾Ð¶Ð¸Ð´Ð°Ð»Ð¾ÑÑŒ {0} ÑÑ‚Ñ€Ð¾Ðº, Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½Ð¾ {1}.", height, receivedLines));
+                    log(string.Format("Предупреждение: ожидалось {0} строк, получено {1}.", height, receivedLines));
 
                 SaveRgbToPng(rawBytes, rawLineSize, width, outputHeight, dpi, outputPath);
-                progress("Ð“Ð¾Ñ‚Ð¾Ð²Ð¾.", 100);
+                progress("Готово.", 100);
                 return outputPath;
             }
             finally
@@ -118,11 +118,11 @@ namespace MX310Native
                     try
                     {
                         Execute(CmdAbortSession, 0, 0, null);
-                        log("Ð¡ÐµÑÑÐ¸Ñ ÑÐºÐ°Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð°.");
+                        log("Сессия сканирования закрыта.");
                     }
                     catch (Exception ex)
                     {
-                        log("ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ abort-session: " + ex.Message);
+                        log("Не удалось отправить abort-session: " + ex.Message);
                         usb.ClearBulkHalts();
                     }
                     sessionStarted = false;
@@ -143,11 +143,11 @@ namespace MX310Native
                 catch (PixmaBusyException ex)
                 {
                     last = ex;
-                    log("MX310 Ð·Ð°Ð½ÑÑ‚, Ð¿Ð¾Ð¿Ñ‹Ñ‚ÐºÐ° " + attempt + "/11.");
+                    log("MX310 занят, попытка " + attempt + "/11.");
                     Thread.Sleep(1000);
                 }
             }
-            throw new InvalidOperationException("MX310 Ð¾ÑÑ‚Ð°Ð²Ð°Ð»ÑÑ Ð·Ð°Ð½ÑÑ‚Ñ‹Ð¼ Ð±Ð¾Ð»ÐµÐµ 10 ÑÐµÐºÑƒÐ½Ð´.", last);
+            throw new InvalidOperationException("MX310 оставался занятым более 10 секунд.", last);
         }
 
         private void SendGammaTable(double gamma)
@@ -198,14 +198,14 @@ namespace MX310Native
                 log("DA20 status: " + Hex(status, 8, 8));
                 if ((calibration & 0x03) != 0)
                 {
-                    progress("ÐšÐ°Ð»Ð¸Ð±Ñ€Ð¾Ð²ÐºÐ° Ð·Ð°Ð²ÐµÑ€ÑˆÐµÐ½Ð°.", 23);
+                    progress("Калибровка завершена.", 23);
                     return;
                 }
-                progress("ÐšÐ°Ð»Ð¸Ð±Ñ€Ð¾Ð²ÐºÐ° ÑÐºÐ°Ð½ÐµÑ€Ð°... " + (second + 1) + " Ñ", 20);
+                progress("Калибровка сканера... " + (second + 1) + " с", 20);
                 usb.DrainInterrupts();
                 Thread.Sleep(1000);
             }
-            throw new TimeoutException("ÐšÐ°Ð»Ð¸Ð±Ñ€Ð¾Ð²ÐºÐ° MX310 Ð½Ðµ Ð·Ð°Ð²ÐµÑ€ÑˆÐ¸Ð»Ð°ÑÑŒ Ð·Ð° 120 ÑÐµÐºÑƒÐ½Ð´.");
+            throw new TimeoutException("Калибровка MX310 не завершилась за 120 секунд.");
         }
 
         private ImageBlock ReadImageBlock(int previousFlags)
@@ -218,12 +218,12 @@ namespace MX310Native
 
             byte[] first = usb.Read(512, 8000);
             if (first.Length < 16)
-                throw new InvalidDataException("ÐšÐ¾Ñ€Ð¾Ñ‚ÐºÐ¸Ð¹ Ð·Ð°Ð³Ð¾Ð»Ð¾Ð²Ð¾Ðº Ð±Ð»Ð¾ÐºÐ° Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ: " + first.Length + " Ð±Ð°Ð¹Ñ‚.");
+                throw new InvalidDataException("Короткий заголовок блока изображения: " + first.Length + " байт.");
             CheckStatus(first);
             int flags = first[8] & 0x38;
             uint declared = GetBe32(first, 12);
             if (declared > ImageBlockSize)
-                throw new InvalidDataException("MX310 Ð¾Ð±ÑŠÑÐ²Ð¸Ð» ÑÐ»Ð¸ÑˆÐºÐ¾Ð¼ Ð±Ð¾Ð»ÑŒÑˆÐ¾Ð¹ Ð±Ð»Ð¾Ðº: " + declared + " Ð±Ð°Ð¹Ñ‚.");
+                throw new InvalidDataException("MX310 объявил слишком большой блок: " + declared + " байт.");
 
             int inFirst = Math.Min((int)declared, first.Length - 16);
             byte[] data = new byte[(int)declared];
@@ -233,7 +233,7 @@ namespace MX310Native
             {
                 byte[] tail = usb.Read(remaining, 30000);
                 if (tail.Length != remaining)
-                    throw new InvalidDataException(string.Format("ÐÐµÐ¿Ð¾Ð»Ð½Ñ‹Ð¹ Ð±Ð»Ð¾Ðº Ð¸Ð·Ð¾Ð±Ñ€Ð°Ð¶ÐµÐ½Ð¸Ñ: {0} Ð¸Ð· {1} Ð±Ð°Ð¹Ñ‚.",
+                    throw new InvalidDataException(string.Format("Неполный блок изображения: {0} из {1} байт.",
                         inFirst + tail.Length, declared));
                 Buffer.BlockCopy(tail, 0, data, inFirst, remaining);
             }
@@ -248,7 +248,7 @@ namespace MX310Native
             if (dataOutLength > 0)
             {
                 if (payload == null || payload.Length != dataOutLength)
-                    throw new ArgumentException("ÐÐµÐ²ÐµÑ€Ð½Ð°Ñ Ð´Ð»Ð¸Ð½Ð° payload Ð´Ð»Ñ ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ‹ 0x" + commandCode.ToString("X4"));
+                    throw new ArgumentException("Неверная длина payload для команды 0x" + commandCode.ToString("X4"));
                 Buffer.BlockCopy(payload, 0, command, 16, payload.Length);
                 FillChecksum(command, 16, command.Length - 1);
             }
@@ -258,15 +258,15 @@ namespace MX310Native
             byte[] response = usb.Read(8 + dataInLength, 8000);
             log("IN  " + commandCode.ToString("X4") + " (" + response.Length + " bytes): " + Hex(response, 0, Math.Min(response.Length, 64)));
             if (response.Length < 8)
-                throw new InvalidDataException("ÐšÐ¾Ñ€Ð¾Ñ‚ÐºÐ¸Ð¹ Ð¾Ñ‚Ð²ÐµÑ‚ Ð½Ð° ÐºÐ¾Ð¼Ð°Ð½Ð´Ñƒ 0x" + commandCode.ToString("X4"));
+                throw new InvalidDataException("Короткий ответ на команду 0x" + commandCode.ToString("X4"));
             CheckStatus(response);
             if (dataInLength > 0)
             {
                 if (response.Length != 8 + dataInLength)
-                    throw new InvalidDataException(string.Format("ÐžÑ‚Ð²ÐµÑ‚ 0x{0:X4}: {1} Ð±Ð°Ð¹Ñ‚ Ð²Ð¼ÐµÑÑ‚Ð¾ {2}.",
+                    throw new InvalidDataException(string.Format("Ответ 0x{0:X4}: {1} байт вместо {2}.",
                         commandCode, response.Length, 8 + dataInLength));
                 if (Sum(response, 8, dataInLength) != 0)
-                    throw new InvalidDataException("ÐžÑˆÐ¸Ð±ÐºÐ° ÐºÐ¾Ð½Ñ‚Ñ€Ð¾Ð»ÑŒÐ½Ð¾Ð¹ ÑÑƒÐ¼Ð¼Ñ‹ Ð¾Ñ‚Ð²ÐµÑ‚Ð° 0x" + commandCode.ToString("X4"));
+                    throw new InvalidDataException("Ошибка контрольной суммы ответа 0x" + commandCode.ToString("X4"));
             }
             return response;
         }
@@ -276,8 +276,8 @@ namespace MX310Native
             ushort status = GetBe16(response, 0);
             if (status == 0x0606) return;
             if (status == 0x1414) throw new PixmaBusyException();
-            if (status == 0x1515) throw new InvalidOperationException("MX310 Ð¾Ñ‚Ð¼ÐµÐ½Ð¸Ð» ÐºÐ¾Ð¼Ð°Ð½Ð´Ñƒ (PIXMA status 0x1515).");
-            throw new InvalidDataException("ÐÐµÐ¸Ð·Ð²ÐµÑÑ‚Ð½Ñ‹Ð¹ PIXMA status 0x" + status.ToString("X4"));
+            if (status == 0x1515) throw new InvalidOperationException("MX310 отменил команду (PIXMA status 0x1515).");
+            throw new InvalidDataException("Неизвестный PIXMA status 0x" + status.ToString("X4"));
         }
 
         private static void FillChecksum(byte[] buffer, int start, int checksumOffset)
@@ -376,7 +376,7 @@ namespace MX310Native
 
         private sealed class PixmaBusyException : Exception
         {
-            public PixmaBusyException() : base("MX310 Ð·Ð°Ð½ÑÑ‚ (PIXMA status 0x1414).") { }
+            public PixmaBusyException() : base("MX310 занят (PIXMA status 0x1414).") { }
         }
 
         private sealed class ImageBlock
@@ -391,4 +391,3 @@ namespace MX310Native
         }
     }
 }
-

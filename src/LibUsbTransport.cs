@@ -41,7 +41,7 @@ namespace MX310Native
                 if (handle == IntPtr.Zero)
                 {
                     throw new InvalidOperationException(
-                        "MX310 Ð½Ðµ Ð¾Ñ‚ÐºÑ€Ñ‹Ð»ÑÑ Ñ‡ÐµÑ€ÐµÐ· WinUSB. ÐŸÑ€Ð¾Ð²ÐµÑ€ÑŒÑ‚Ðµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²ÐºÑƒ Mx310_Evgenium_scanner Ð´Ð»Ñ Interface 0 / MI_00.");
+                        "MX310 не открылся через WinUSB. Проверьте установку Mx310_Evgenium_scanner для Interface 0 / MI_00.");
                 }
 
                 DiscoverEndpoints();
@@ -53,7 +53,7 @@ namespace MX310Native
                 rc = Native.libusb_claim_interface(handle, ScannerInterface);
                 Check(rc, "libusb_claim_interface(0)");
                 claimed = true;
-                log(string.Format("USB Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚: OUT=0x{0:X2}, IN=0x{1:X2}, INTERRUPT=0x{2:X2}", bulkOut, bulkIn, interruptIn));
+                log(string.Format("USB открыт: OUT=0x{0:X2}, IN=0x{1:X2}, INTERRUPT=0x{2:X2}", bulkOut, bulkIn, interruptIn));
             }
             catch
             {
@@ -69,7 +69,7 @@ namespace MX310Native
             int rc = Native.libusb_bulk_transfer(handle, bulkOut, data, data.Length, out transferred, (uint)timeoutMs);
             Check(rc, "USB bulk OUT");
             if (transferred != data.Length)
-                throw new IOException(string.Format("ÐÐµÐ¿Ð¾Ð»Ð½Ð°Ñ USB-Ð·Ð°Ð¿Ð¸ÑÑŒ: {0} Ð¸Ð· {1} Ð±Ð°Ð¹Ñ‚.", transferred, data.Length));
+                throw new IOException(string.Format("Неполная USB-запись: {0} из {1} байт.", transferred, data.Length));
         }
 
         public byte[] Read(int maximumBytes, int timeoutMs)
@@ -95,10 +95,10 @@ namespace MX310Native
                 if (rc == LibUsbErrorTimeout) break;
                 if (rc != 0)
                 {
-                    log("ÐžÑ‡Ð¸ÑÑ‚ÐºÐ° interrupt endpoint: " + ErrorText(rc));
+                    log("Очистка interrupt endpoint: " + ErrorText(rc));
                     break;
                 }
-                log("Ð£Ð´Ð°Ð»Ñ‘Ð½ Ð¾Ð¶Ð¸Ð´Ð°Ð²ÑˆÐ¸Ð¹ interrupt-Ð¿Ð°ÐºÐµÑ‚: " + transferred + " Ð±Ð°Ð¹Ñ‚.");
+                log("Удалён ожидавший interrupt-пакет: " + transferred + " байт.");
             }
         }
 
@@ -131,7 +131,7 @@ namespace MX310Native
         private void DiscoverEndpoints()
         {
             IntPtr device = Native.libusb_get_device(handle);
-            if (device == IntPtr.Zero) throw new InvalidOperationException("libusb_get_device Ð²ÐµÑ€Ð½ÑƒÐ» NULL.");
+            if (device == IntPtr.Zero) throw new InvalidOperationException("libusb_get_device вернул NULL.");
 
             IntPtr configPointer;
             int rc = Native.libusb_get_active_config_descriptor(device, out configPointer);
@@ -178,7 +178,7 @@ namespace MX310Native
             }
 
             if (bulkIn == 0 || bulkOut == 0)
-                throw new InvalidOperationException("Ð£ Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÐ¹ÑÐ° MI_00 Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½Ñ‹ bulk IN/OUT endpoints.");
+                throw new InvalidOperationException("У интерфейса MI_00 не найдены bulk IN/OUT endpoints.");
         }
 
         private static IntPtr Add(IntPtr pointer, int offset)
@@ -212,9 +212,9 @@ namespace MX310Native
             string nativeRoot = Path.Combine(appRoot, architecture);
             string dll = Path.Combine(nativeRoot, "libusb-1.0.dll");
             if (!File.Exists(dll))
-                throw new FileNotFoundException("ÐÐµ Ð½Ð°Ð¹Ð´ÐµÐ½ Ð½Ð°Ñ‚Ð¸Ð²Ð½Ñ‹Ð¹ libusb: " + dll, dll);
+                throw new FileNotFoundException("Не найден нативный libusb: " + dll, dll);
             if (!Native.SetDllDirectory(nativeRoot))
-                throw new InvalidOperationException("SetDllDirectory Ð½Ðµ ÑÐ¼Ð¾Ð³ Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð¸Ñ‚ÑŒ: " + nativeRoot);
+                throw new InvalidOperationException("SetDllDirectory не смог подключить: " + nativeRoot);
         }
 
         private static string GetProcessArchitecture()
@@ -353,4 +353,3 @@ namespace MX310Native
         }
     }
 }
-

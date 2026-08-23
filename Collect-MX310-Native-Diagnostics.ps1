@@ -233,4 +233,3 @@ catch {
     Write-Host ('Diagnostics error: ' + $_.Exception.Message) -ForegroundColor Red
     exit 1
 }
-

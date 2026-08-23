@@ -54,4 +54,3 @@ Write-Host ('Built: ' + $output)
 Write-Host ('SHA256: ' + $hash)
 Write-Host ('Debug uninstaller: ' + $debugUninstaller)
 Write-Host ('SHA256: ' + $uninstallHash)
-

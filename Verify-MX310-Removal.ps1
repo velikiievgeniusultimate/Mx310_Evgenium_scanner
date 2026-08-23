@@ -53,4 +53,3 @@ $found=@($results|Where-Object{$_.Result-eq'FOUND'}).Count
 $report+='';$report+=$(if($found-eq0){'FINAL RESULT: CLEAN'}else{'FINAL RESULT: RESIDUES FOUND = '+$found})
 $report|Set-Content $ReportPath -Encoding UTF8;$report|ForEach-Object{Write-Host $_}
 if($found-eq0){exit 0}else{exit 3}
-
